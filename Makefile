@@ -5,7 +5,6 @@ BUILDER ?= $(DEF_BUILDER)
 clean:
 	rm -rf ./otel
 	rm -rf ./ocb
-	mkdir otel
 
 ocb:
 	if [ "$(BUILDER)" = "$(DEF_BUILDER)" ]; then \
