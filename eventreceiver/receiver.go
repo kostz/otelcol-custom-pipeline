@@ -51,6 +51,9 @@ func (e *event) ToOtel() plog.Logs {
 
 	lr.Body().SetStr(e.Message)
 	lr.SetTimestamp(pcommon.NewTimestampFromTime(e.Timestamp))
+	lr.Attributes().PutStr("ip_address", e.IPAddress)
+	lr.Attributes().PutStr("event_type", e.EventType)
+	lr.Attributes().PutStr("user_id", e.UserID)
 
 	return data
 }

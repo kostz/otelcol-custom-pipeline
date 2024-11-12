@@ -75,6 +75,7 @@ func (s *IPResolveService) ResolveIP(w http.ResponseWriter, r *http.Request) {
 	)
 
 	ipAddress = mux.Vars(r)["ip"]
+	s.logger.Info("rq received", zap.String("ip", ipAddress))
 	if _, ok = s.cache.Get(ipAddress); !ok {
 		data = s.requestMetadata(ipAddress)
 		s.cache.Set(ipAddress, data)
@@ -102,10 +103,12 @@ func (s *IPResolveService) start() {
 	srv.Addr = LISTEN
 	srv.Handler = r
 
+	s.logger.Info("server starting...")
 	func() {
 		err := srv.ListenAndServe()
-		panic(err)
+		zap.Error(err)
 	}()
+
 }
 
 func main() {

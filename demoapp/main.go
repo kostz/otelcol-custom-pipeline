@@ -29,7 +29,7 @@ func main() {
 		userId := gofakeit.Username()
 		tz := gofakeit.TimeZoneAbv()
 		data := map[string]string{"ip_addr": ipv4, "eventId": eventId,
-			"userId": userId, "timezone": tz}
+			"userId": userId, "timezone": tz, "message": "some message"}
 		mapData, _ := json.Marshal(data)
 
 		// report log record to otelcol pipeline

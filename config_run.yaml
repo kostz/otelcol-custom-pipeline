@@ -9,7 +9,7 @@ receivers:
 
 processors:
   eventenrichprocessor:
-    ipresolveservice_url: "0.0.0.0:5501/api/v1/resolve"
+    ipresolveservice_url: "http://0.0.0.0:5501/api/v1/resolve"
 
 exporters:
   debug:

@@ -44,7 +44,8 @@ type IPResolveClient interface {
 }
 
 type ipResolveClientImpl struct {
-	url string
+	logger *zap.Logger
+	url    string
 }
 
 func (i ipResolveClientImpl) ResolveIP(ctx context.Context, ipAddress string) ([]attribute.KeyValue, error) {
@@ -53,15 +54,24 @@ func (i ipResolveClientImpl) ResolveIP(ctx context.Context, ipAddress string) ([
 
 	rs, err := http.Get(fmt.Sprintf("%s/%s", i.url, ipAddress))
 	if err != nil {
+		i.logger.Error("can't call ip service",
+			zap.Int("ret_code", rs.StatusCode),
+		)
 		return res, nil
 	}
 	rsData, err := io.ReadAll(rs.Body)
 	if err != nil {
+		i.logger.Error("can't read response ",
+			zap.Error(err),
+		)
 		return res, nil
 	}
 
 	err = json.Unmarshal(rsData, &data)
 	if err != nil {
+		i.logger.Error("can't unmarshal response ",
+			zap.Error(err),
+		)
 		return res, nil
 	}
 
@@ -73,12 +83,17 @@ func (i ipResolveClientImpl) ResolveIP(ctx context.Context, ipAddress string) ([
 		attribute.String("timezone", data.Timezone),
 	}...)
 
+	i.logger.Info("response ",
+		zap.Any("response", res),
+	)
+
 	return res, nil
 }
 
-func NewIPResolveClient(url string) (IPResolveClient, error) {
+func NewIPResolveClient(url string, logger *zap.Logger) (IPResolveClient, error) {
 	return &ipResolveClientImpl{
-		url: url,
+		url:    url,
+		logger: logger,
 	}, nil
 }
 
@@ -93,10 +108,20 @@ func (p *EventEnrichProcessor) ProcessLogs(
 	logs.ResourceLogs().RemoveIf(func(resourceLogs plog.ResourceLogs) bool {
 		resourceLogs.ScopeLogs().RemoveIf(func(scopeLogs plog.ScopeLogs) bool {
 			scopeLogs.LogRecords().RemoveIf(func(log plog.LogRecord) bool {
-				ipAddress, _ := log.Attributes().Get(IpAddressKey)
-				attrs, err := p.ipResolveClient.ResolveIP(ctx, ipAddress.Str())
+
+				ipAddress, ok := log.Attributes().Get(IpAddressKey)
+				if !ok {
+					p.logger.Warn("no ip address provided in log message")
+				}
+
+				attrs, err := p.ipResolveClient.ResolveIP(ctx, ipAddress.AsString())
+				p.logger.Info("ip resolved",
+					zap.String("ip", ipAddress.AsString()),
+					zap.Any("attrs", attrs),
+					zap.Error(err),
+				)
 				if err != nil {
-					return false
+					p.logger.Warn("can't resolve ip", zap.Error(err))
 				}
 				for _, a := range attrs {
 					log.Attributes().PutStr(string(a.Key), a.Value.AsString())

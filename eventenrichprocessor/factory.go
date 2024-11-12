@@ -25,7 +25,7 @@ func createLogsProcessor(
 		return nil, fmt.Errorf("unable to parse config")
 	}
 
-	ipResolveClient, err := NewIPResolveClient(localConfig.IPResolveServiceURL)
+	ipResolveClient, err := NewIPResolveClient(localConfig.IPResolveServiceURL, set.Logger)
 	if err != nil {
 		zap.Error(err)
 	}
