@@ -2,7 +2,6 @@ dist:
   name: custom-otel-collector
   description: Custom collector
   output_path: ./otel
-#  otelcol_version: 0.113.0
   version: 0.0.1
 
 receivers:
