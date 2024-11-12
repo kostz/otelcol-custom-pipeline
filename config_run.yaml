@@ -1,8 +1,11 @@
 receivers:
+  eventreceiver:
+    http:
+      endpoint: "0.0.0.0:5520"
   otlp:
     protocols:
-      grpc:
       http:
+        endpoint: "0.0.0.0:5510"
 
 processors:
   eventenrichprocessor:
@@ -18,7 +21,7 @@ service:
       processors: []
       exporters: [debug]
     logs:
-      receivers: [otlp]
+      receivers: [eventreceiver]
       processors: [eventenrichprocessor]
       exporters: [debug]
 

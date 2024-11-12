@@ -6,6 +6,8 @@ dist:
 
 receivers:
   - gomod: go.opentelemetry.io/collector/receiver/otlpreceiver v0.113.0
+  - gomod: github.com/kostz/eventreceiver v1.0.0
+    name: eventreceiver
 
 processors:
   - gomod: github.com/kostz/eventenrichprocessor v1.0.0
@@ -16,3 +18,4 @@ exporters:
 
 replaces:
   - github.com/kostz/eventenrichprocessor => ../eventenrichprocessor
+  - github.com/kostz/eventreceiver => ../eventreceiver
