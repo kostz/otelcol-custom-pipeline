@@ -141,8 +141,9 @@ func (er *eventReceiver) Report(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ev := &event{}
+	ev := event{}
 	err = json.Unmarshal(bodyBytes, &ev)
+	er.logger.Info("event received", zap.Any("event", ev))
 	if err != nil {
 		er.writeResponse(w, err)
 		return
