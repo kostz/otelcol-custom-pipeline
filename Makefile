@@ -19,3 +19,6 @@ ocb:
 
 build: ocb
 	CGO_ENABLED=0 $(BUILDER) --config config_build.yaml --verbose
+
+run: build
+	./otel/custom-otel-collector --config config_run.yaml

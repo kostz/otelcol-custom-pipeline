@@ -1,0 +1,24 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+
+processors:
+  eventenrichprocessor:
+    ipresolveservice_url: "0.0.0.0:5501/api/v1/resolve"
+
+exporters:
+  debug:
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      processors: []
+      exporters: [debug]
+    logs:
+      receivers: [otlp]
+      processors: [eventenrichprocessor]
+      exporters: [debug]
+
