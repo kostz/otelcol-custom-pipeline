@@ -76,6 +76,9 @@ func (er *eventReceiver) Start(ctx context.Context, host component.Host) error {
 		zap.Any("router", r),
 	)
 	er.server, err = er.cfg.HTTP.ToServer(ctx, host, er.settings.TelemetrySettings, r)
+	if err != nil {
+		return fmt.Errorf("can't init http server: %s", err)
+	}
 	go func() {
 		if errHTTP := er.server.Serve(ln); !errors.Is(errHTTP, http.ErrServerClosed) && errHTTP != nil {
 			componentstatus.ReportStatus(host, componentstatus.NewFatalErrorEvent(errHTTP))

@@ -53,6 +53,7 @@ func createDefaultConfig() component.Config {
 	return &Config{}
 }
 
+// NewFactory creates a factory
 func NewFactory() processor.Factory {
 	cfgType, _ := component.NewType(typeStr)
 	return processor.NewFactory(

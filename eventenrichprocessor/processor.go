@@ -13,12 +13,14 @@ import (
 	"net/http"
 )
 
+// EventEnrichProcessor keeps the component of a processor
 type EventEnrichProcessor struct {
 	ipResolveClient IPResolveClient
 	logger          *zap.Logger
 	tracer          trace.Tracer
 }
 
+// IPMetadata keeps the dataset to be added to log records
 type IPMetadata struct {
 	Country  string `json:"country"`
 	City     string `json:"city"`
@@ -28,9 +30,11 @@ type IPMetadata struct {
 }
 
 const (
-	IpAddressKey = "ip_address"
+	// IPAddressKey defines the key name with ip address
+	IPAddressKey = "ip_address"
 )
 
+// NewEventEnrichProcessor creates the instance of Event enrich processor
 func NewEventEnrichProcessor(ipResolveClient IPResolveClient, set *processor.Settings) (*EventEnrichProcessor, error) {
 	return &EventEnrichProcessor{
 		ipResolveClient: ipResolveClient,
@@ -39,6 +43,7 @@ func NewEventEnrichProcessor(ipResolveClient IPResolveClient, set *processor.Set
 	}, nil
 }
 
+// IPResolveClient defines the interface for IP Resolve service
 type IPResolveClient interface {
 	ResolveIP(context.Context, string) ([]attribute.KeyValue, error)
 }
@@ -90,6 +95,7 @@ func (i ipResolveClientImpl) ResolveIP(ctx context.Context, ipAddress string) ([
 	return res, nil
 }
 
+// NewIPResolveClient creates the client to IP resolve service
 func NewIPResolveClient(url string, logger *zap.Logger) (IPResolveClient, error) {
 	return &ipResolveClientImpl{
 		url:    url,
@@ -97,6 +103,7 @@ func NewIPResolveClient(url string, logger *zap.Logger) (IPResolveClient, error)
 	}, nil
 }
 
+// ProcessLogs enriches log recoeds with metadata by ip address
 func (p *EventEnrichProcessor) ProcessLogs(
 	ctx context.Context,
 	logs plog.Logs,
@@ -109,7 +116,7 @@ func (p *EventEnrichProcessor) ProcessLogs(
 		resourceLogs.ScopeLogs().RemoveIf(func(scopeLogs plog.ScopeLogs) bool {
 			scopeLogs.LogRecords().RemoveIf(func(log plog.LogRecord) bool {
 
-				ipAddress, ok := log.Attributes().Get(IpAddressKey)
+				ipAddress, ok := log.Attributes().Get(IPAddressKey)
 				if !ok {
 					p.logger.Warn("no ip address provided in log message")
 				}

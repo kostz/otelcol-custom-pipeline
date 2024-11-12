@@ -28,9 +28,5 @@ lint:
 	golint -set_exit_status $(SOURCE_DIRS)
 	golangci-lint run
 
-build: $(SOURCES)
-	CGO_ENABLED=0 go build $(BUILD_FLAGS) -ldflags "$(LDFLAGS)" $(CMD) -o build/
 
-run: build
-	./build/ipresolveservice
 

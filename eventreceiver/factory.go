@@ -17,7 +17,7 @@ const (
 func createDefaultConfig() component.Config {
 	return &Config{
 		HTTP: &confighttp.ServerConfig{
-			Endpoint: fmt.Sprintf("0.0.0.0:%d", httpPort),
+			Endpoint: fmt.Sprintf("0.0.0.0:%s", httpPort),
 		},
 	}
 }
@@ -27,6 +27,7 @@ func createEventReceiver(ctx context.Context, set receiver.Settings, config comp
 	return newEventReceiver(cfg, &set, nextConsumer)
 }
 
+// NewFactory creates a receiver factory
 func NewFactory() receiver.Factory {
 	cfgType, _ := component.NewType(typeStr)
 	return receiver.NewFactory(
