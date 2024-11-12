@@ -67,6 +67,11 @@ func (er *eventReceiver) Start(ctx context.Context, host component.Host) error {
 
 	r := mux.NewRouter()
 	r.HandleFunc("/report", er.Report).Methods(http.MethodPost)
+	er.logger.Info("starting server",
+		zap.Any("host", host),
+		zap.Any("telemetry", er.settings.TelemetrySettings),
+		zap.Any("router", r),
+	)
 	er.server, err = er.cfg.HTTP.ToServer(ctx, host, er.settings.TelemetrySettings, r)
 	go func() {
 		if errHTTP := er.server.Serve(ln); !errors.Is(errHTTP, http.ErrServerClosed) && errHTTP != nil {
@@ -97,6 +102,7 @@ func newEventReceiver(cfg *Config, set *receiver.Settings, nextLogs consumer.Log
 		server:   nil,
 		logger:   set.Logger,
 		tracer:   set.TracerProvider.Tracer(typeStr),
+		settings: set,
 	}
 
 	r.obsrep, err = receiverhelper.NewObsReport(receiverhelper.ObsReportSettings{

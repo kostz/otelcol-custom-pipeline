@@ -2,17 +2,24 @@ package eventreceiver
 
 import (
 	"context"
+	"fmt"
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/receiver"
 )
 
 const (
-	typeStr = "eventreceiver"
+	typeStr  = "eventreceiver"
+	httpPort = "5510"
 )
 
 func createDefaultConfig() component.Config {
-	return Config{}
+	return &Config{
+		HTTP: &confighttp.ServerConfig{
+			Endpoint: fmt.Sprintf("0.0.0.0:%d", httpPort),
+		},
+	}
 }
 
 func createEventReceiver(ctx context.Context, set receiver.Settings, config component.Config, nextConsumer consumer.Logs) (receiver.Logs, error) {
