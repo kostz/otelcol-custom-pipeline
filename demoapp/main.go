@@ -13,7 +13,8 @@ import (
 func main() {
 	ticker := time.NewTicker(5 * time.Second)
 
-	meter, err := NewMeter(context.Background(), "demoapp")
+	ctx := context.Background()
+	meter, err := NewMeter(ctx, "demoapp")
 	if err != nil {
 		fmt.Println("can't init meter", err)
 	}
@@ -33,10 +34,9 @@ func main() {
 
 		// report log record to otelcol pipeline
 		r, err := http.Post("http://0.0.0.0:5520/report", "application/json", bytes.NewBuffer(mapData))
-
 		fmt.Println(r.StatusCode, err)
 
 		// increment request processed counter
-		counter.Add(context.Background(), 1)
+		counter.Add(ctx, 1)
 	}
 }
