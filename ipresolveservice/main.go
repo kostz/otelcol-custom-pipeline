@@ -4,14 +4,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"go.uber.org/zap"
 	"io"
 	"net/http"
 
 	"github.com/kostz/ipresolveservice/cache"
 )
 
+// LISTEN defines the listening port
 const LISTEN = "0.0.0.0:5501"
 
+// IPMetadata contains metadata to be retrieved
 type IPMetadata struct {
 	Country  string `json:"country"`
 	City     string `json:"city"`
@@ -20,17 +23,26 @@ type IPMetadata struct {
 	Currency string `json:"currency"`
 }
 
-type IpResolveService struct {
-	cache cache.Cache
+// IPResolveService holds the service components
+type IPResolveService struct {
+	cache  cache.Cache
+	logger *zap.Logger
 }
 
-func NewIpResolveService() *IpResolveService {
-	return &IpResolveService{
-		cache: cache.NewSyncCache(),
+// NewIPResolveService creates the instance of a service
+func NewIPResolveService() *IPResolveService {
+	logger, err := zap.NewProduction()
+	if err != nil {
+		panic(err)
+	}
+
+	return &IPResolveService{
+		cache:  cache.NewSyncCache(),
+		logger: logger,
 	}
 }
 
-func (s *IpResolveService) requestMetadata(ip string) IPMetadata {
+func (s *IPResolveService) requestMetadata(ip string) IPMetadata {
 	res := IPMetadata{}
 	resp, err := http.Get(
 		fmt.Sprintf("http://ip-api.com/json/%s?fields=status,country,city,region,timezone,currency", ip),
@@ -53,7 +65,8 @@ func (s *IpResolveService) requestMetadata(ip string) IPMetadata {
 	return res
 }
 
-func (s *IpResolveService) ResolveIP(w http.ResponseWriter, r *http.Request) {
+// ResolveIP handles the /api/v1/resolve endpoint
+func (s *IPResolveService) ResolveIP(w http.ResponseWriter, r *http.Request) {
 	var (
 		data      IPMetadata
 		dataRaw   interface{}
@@ -67,15 +80,21 @@ func (s *IpResolveService) ResolveIP(w http.ResponseWriter, r *http.Request) {
 		s.cache.Set(ipAddress, data)
 	}
 
-	dataRaw, ok = s.cache.Get(ipAddress)
-	data, ok = dataRaw.(IPMetadata)
+	dataRaw, _ = s.cache.Get(ipAddress)
 
+	data, ok = dataRaw.(IPMetadata)
+	if !ok {
+		s.logger.Error("can't cast data")
+	}
 	enc, _ := json.Marshal(data)
 	w.WriteHeader(http.StatusOK)
-	w.Write(enc)
+	_, err := w.Write(enc)
+	if err != nil {
+		s.logger.Error("can't write response", zap.Error(err))
+	}
 }
 
-func (s *IpResolveService) start() {
+func (s *IPResolveService) start() {
 	r := mux.NewRouter()
 	r.HandleFunc("/api/v1/resolve/{ip}", s.ResolveIP).Methods(http.MethodGet)
 
@@ -90,6 +109,6 @@ func (s *IpResolveService) start() {
 }
 
 func main() {
-	s := NewIpResolveService()
+	s := NewIPResolveService()
 	s.start()
 }
