@@ -34,7 +34,12 @@ func main() {
 
 		// report log record to otelcol pipeline
 		r, err := http.Post("http://0.0.0.0:5520/report", "application/json", bytes.NewBuffer(mapData))
-		fmt.Println(r.StatusCode, err)
+		switch r != nil {
+		case true:
+			fmt.Println(r.StatusCode)
+		default:
+			fmt.Println(err)
+		}
 
 		// increment request processed counter
 		counter.Add(ctx, 1)
